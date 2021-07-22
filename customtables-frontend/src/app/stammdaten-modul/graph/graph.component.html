@@ -1,0 +1,60 @@
+<div class="row">
+  <div class="clr-col-12">
+    <h1>Data visualisation</h1>
+    <canvas id="myChart"></canvas>
+  </div>
+</div>
+
+
+<clr-wizard #setupwizard [(clrWizardOpen)]="setupWizardOpened" clrWizardSize="lg">
+  <clr-wizard-title>Graph-Wizard</clr-wizard-title>
+
+  <clr-wizard-button [type]="'cancel'">Cancel</clr-wizard-button>
+  <clr-wizard-button [type]="'previous'">Back</clr-wizard-button>
+  <clr-wizard-button [type]="'next'">Next</clr-wizard-button>
+  <clr-wizard-button [type]="'finish'">Finish</clr-wizard-button>
+
+  <clr-wizard-page>
+    <ng-template clrPageTitle>Step 1</ng-template>
+    <h1>Welcome to Graph-Wizard!</h1>
+    <p>Using the Graph Wizard, you can easily visualise your data! To do this, simply determine the desired visualisation type in the following steps and then select the data to be displayed accordingly.</p>  
+  </clr-wizard-page>
+
+  <clr-wizard-page (clrWizardPageOnLoad)="initExampleChart()">
+    <ng-template clrPageTitle>Step 2</ng-template>
+    <h1>Determine the form of representation</h1>
+    <form clrForm [formGroup]="chartFormGroup">
+    <clr-select-container>
+      <label>Diagram type</label>
+      <select clrSelect name="options" formControlName="chartType" (change)="changeChartType()">
+        <option value="bar">Bar</option>
+        <option value="line">Line</option>
+        <option value="radar">Radar</option>
+        <option value="doughnut">Donut</option>
+        <option value="pie">Cake</option>
+      </select>
+    </clr-select-container>
+      <canvas #exampleCanvas id="exCanvas" (load)="initExampleChart()"></canvas>
+    </form>
+  </clr-wizard-page>
+
+  <clr-wizard-page (clrWizardPageFinish)="createGraph()">
+    <ng-template clrPageTitle>Step 3</ng-template>
+    <h2>Data selection</h2>
+    <form clrForm [formGroup]="dataFormGroup">
+      <clr-select-container>
+        <label>X axis</label>
+        <select clrSelect name="options" formControlName="dataX" (change)="changeDataX($event)">
+          <option *ngFor="let col of columns" value="{{col.id}}">{{col.name}}</option>
+        </select>
+      </clr-select-container>
+      <clr-select-container>
+        <label>Y axis</label>
+        <select clrSelect name="options" formControlName="dataY" (change)="changeDataY($event)">
+          <option *ngFor="let col of columns" value="{{col.id}}">{{col.name}}</option>
+        </select>
+      </clr-select-container>
+    </form>
+  </clr-wizard-page>
+
+</clr-wizard>

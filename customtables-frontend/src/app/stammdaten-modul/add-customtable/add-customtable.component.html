@@ -1,0 +1,60 @@
+<div class="row">
+  <div class="clr-col-12">
+    <form clrForm [formGroup]="customTable">
+      <h1>Data Schema</h1>
+      <div class="clr-col-12 clr-col-md-6">
+        <clr-input-container>
+          <label>Name</label>
+          <input clrInput type="text" formControlName="customSchemaInputName" name="example" />
+        </clr-input-container>
+      </div>
+
+      <div class="clr-col-12 clr-col-md-6">
+        <clr-select-container>
+          <label>Data type</label>
+          <select clrSelect name="options" formControlName="customSchemaInputDatatype">
+            <option value="{{TEXTTYPE}}">Text (20 Chars)</option>
+            <option value="{{LONGTEXTTYPE}}">Long Text (250 Chars)</option>
+            <option value="{{NUMBERTYPE}}">Number</option>
+            <option value="{{DATETYPE}}">Date</option>
+            <option value="{{INTERNETTYPE}}">Internet</option>
+            <option value="{{EMAILTYPE}}">Email</option>
+            <option value="{{PHONETYPE}}">Phone</option>
+            <option value="{{TIMETYPE}}">Time</option>
+          </select>
+        </clr-select-container>
+      </div>
+
+
+
+      <div class="btn-group">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="addColDef()"><clr-icon shape="plus"></clr-icon>New Column Definition</button>
+      </div>
+
+      <hr/>
+
+      <clr-datagrid>
+        <clr-dg-column>Nr.</clr-dg-column>
+        <clr-dg-column>Data type</clr-dg-column>
+        <clr-dg-column>Name</clr-dg-column>
+
+        <clr-dg-row *clrDgItems="let customSchemas of customSchemaEntries">
+          <clr-dg-action-overflow>
+            <button class="action-item" (click)="onDelete(customSchemas)">Delete</button>
+          </clr-dg-action-overflow>
+          <clr-dg-cell>{{customSchemas.colNr}}</clr-dg-cell>
+          <clr-dg-cell>{{customSchemas.datatype}}</clr-dg-cell>
+          <clr-dg-cell>{{customSchemas.name}}</clr-dg-cell>
+        </clr-dg-row>
+
+        <clr-dg-footer>{{customSchemaEntries.length}} Entries</clr-dg-footer>
+      </clr-datagrid>
+
+      <div class="btn-group">
+        <button type="button" class="btn btn-sm btn-primary" (click)="submit()"><clr-icon shape="save"></clr-icon>Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+

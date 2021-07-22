@@ -1,0 +1,167 @@
+<ng-container *ngIf="!loading">
+  <div class="row">
+    <div class="clr-col-12">
+  
+      <clr-accordion>
+        <clr-accordion-panel>
+          <clr-accordion-title><clr-icon shape="new"></clr-icon>New Dataset</clr-accordion-title>
+          <clr-accordion-content *clrIfExpanded>
+  
+            <div class="row">
+              <form clrForm [formGroup]="addDataFormGroup">
+                <div *ngFor="let input of customSchema.customColDefinitionSet">
+                  <clr-input-container *ngIf="getInputType(input.datatype) != 'longtext' && getInputType(input.datatype) != 'calculated'">
+                    <label class="clr-col-12 clr-col-md-2">{{input.name}} Input</label>
+                    <input placeholder="{{input.name}} : {{input.datatype}}" class="clr-col-12 clr-col-md-2" clrInput type="{{getInputType(input.datatype)}}" name="example" formControlName="{{input.id}}"/>
+                  </clr-input-container>
+  
+                  <clr-textarea-container *ngIf="getInputType(input.datatype) == 'longtext'">
+                    <label>{{input.name}} Input</label>
+                    <textarea class="clr-textarea" placeholder="{{input.name}} : {{input.datatype}}" formControlName="{{input.id}}" clrTextarea  name="description"></textarea>
+                  </clr-textarea-container>
+  
+  
+                </div>
+  
+              </form>
+            </div>
+  
+            <button class="btn btn-info btn-sm" (click)="saveNewData()">New</button>
+          </clr-accordion-content>
+        </clr-accordion-panel>
+  
+        <clr-accordion-panel>
+          <clr-accordion-title><clr-icon shape="filter-grid"></clr-icon>Search</clr-accordion-title>
+          <clr-accordion-content *clrIfExpanded="searchExpanded">
+            <div class="row">
+              <form clrForm [formGroup]="searchFormGroup">
+                <div *ngFor="let input of customSchema.customColDefinitionSet">
+  
+                  <div *ngIf="input.datatype.toLowerCase() === 'date'">
+                    <clr-input-container>
+                      <label>From {{input.name}} Search</label>
+                      <input (change)="searchFromDate(input.id)" placeholder="{{input.name}} Suche" class="clr-col-12 clr-col-md-2" clrInput type="{{getInputType(input.datatype)}}" name="example" formControlName="{{input.id}};from"/>
+                    </clr-input-container>
+  
+                    <clr-input-container>
+                      <label>To {{input.name}} Search</label>
+                      <input (change)="searchToDate(input.id)" placeholder="{{input.name}} Suche" class="clr-col-12 clr-col-md-2" clrInput type="{{getInputType(input.datatype)}}" name="example" formControlName="{{input.id}};to"/>
+                    </clr-input-container>
+                  </div>
+  
+                  <div *ngIf="input.datatype.toLowerCase() === 'time'">
+                    <clr-input-container>
+                      <label>From {{input.name}} Search</label>
+                      <input (change)="searchFromTime(input)" placeholder="{{input.name}} Suche" class="clr-col-12 clr-col-md-2" clrInput type="{{getInputType(input.datatype)}}" name="example" formControlName="{{input.id}};from"/>
+                    </clr-input-container>
+  
+                    <clr-input-container>
+                      <label>To {{input.name}} Search</label>
+                      <input (change)="searchToTime(input)" placeholder="{{input.name}} Suche" class="clr-col-12 clr-col-md-2" clrInput type="{{getInputType(input.datatype)}}" name="example" formControlName="{{input.id}};to"/>
+                    </clr-input-container>
+                  </div>
+  
+                  <div *ngIf="input.datatype.toLowerCase() !== 'date' && input.datatype.toLowerCase() !== 'time'">
+                    <clr-input-container>
+                      <label>{{input.name}} Search</label>
+                      <input *ngIf="input.datatype.toLowerCase() === 'calculated'" (keyup)="searchCalculated(input)" placeholder="{{input.name}} Suche" class="clr-col-12 clr-col-md-2" clrInput type="{{getInputType(input.datatype)}}" name="example" formControlName="{{input.id}}"/>
+                      <input *ngIf="input.datatype.toLowerCase() !== 'calculated'" (keyup)="search(input.id)" placeholder="{{input.name}} Suche" class="clr-col-12 clr-col-md-2" clrInput type="{{getInputType(input.datatype)}}" name="example" formControlName="{{input.id}}"/>
+                    </clr-input-container>
+                  </div>
+  
+                </div>
+              </form>
+            </div>
+          </clr-accordion-content>
+        </clr-accordion-panel>
+  
+      </clr-accordion>
+  
+  
+      <div class="btn-group btn-primary">
+        <button class="btn btn-info btn-sm" (click)="router.navigate(['/data/graphs'])">Draw Graph!</button>
+        <button class="btn btn-outline-secondary btn-sm" value="CPTURE" (click)="generatePdf()"><clr-icon shape="file"></clr-icon>Pdf generate</button>
+        <button class="btn btn-outline btn-sm" (click)="calculatorGeneratorOpener = true"><clr-icon shape="calculator"></clr-icon>Calculation</button>
+        <button class="btn btn-danger btn-sm" (click)="showDeleteModal = true"><clr-icon shape="trash"></clr-icon>Delete Table!</button>
+      </div>
+  
+      <clr-modal [(clrModalOpen)]="showDeleteModal">
+          <h3 class="modal-title">Delete Table</h3>
+          <div class="modal-body">
+            <p>If you delete your table now, you cannot restore the data! Your data will be lost!</p>        
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="showDeleteModal = false">Cancel</button>
+            <button type="button" class="btn btn-danger" (click)="submitDelete()"><clr-icon shape="trash"></clr-icon>Delete</button>
+          </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+      </clr-modal>
+  
+      <clr-datagrid id="tableExport" #tableExport>
+  
+        <div *ngFor="let col of customSchema.customColDefinitionSet">
+          <clr-dg-column *ngIf="col.datatype.toLowerCase() !== 'calculated'">{{col.name}} Data type: {{col.datatype}}</clr-dg-column>
+          <clr-dg-column *ngIf="col.datatype.toLowerCase() === 'calculated'" (click)="deleteCalculatedColumn(col)"><button class="btn btn-outline-danger btn-sm"><clr-icon shape="times-circle"></clr-icon></button>  {{col.name}} Data type: {{col.datatype}}</clr-dg-column>
+        </div>
+  
+  
+        <clr-dg-placeholder>No Data found!</clr-dg-placeholder>
+          <clr-dg-row class="tableRow" *clrDgItems="let data of customDataFiltered">
+            <clr-dg-action-overflow>
+              <button class="action-item" (click)="onDelete(data)">Delete</button>
+              <button class="action-item" (click)="onEdit(data)">Edit</button>
+            </clr-dg-action-overflow>
+            <clr-dg-cell  *ngFor="let col of data.customDataMap">
+              <a *ngIf="col.customColDefinition.datatype.toLowerCase() === 'email'" [href]="'mailto:'+col.customCol.data">{{col.customCol.data}}</a>
+              <a *ngIf="col.customColDefinition.datatype.toLowerCase() === 'phone'" [href]="'tel:'+col.customCol.data">{{col.customCol.data}}</a>
+              <a target="_blank" *ngIf="col.customColDefinition.datatype.toLowerCase() === 'internet'" [href]="col.customCol.data">{{col.customCol.data}}</a>
+              <span *ngIf="col.customColDefinition.datatype.toLowerCase() !== 'internet' && col.customColDefinition.datatype.toLowerCase() !== 'email' && col.customColDefinition.datatype.toLowerCase() !== 'calculated' && col.customColDefinition.datatype.toLowerCase() !== 'phone'" >{{col.customCol.data}}</span>
+              <span *ngIf="col.customColDefinition.datatype.toLowerCase() === 'calculated'">{{getValueForCalcCol(col, data)}}</span>
+            </clr-dg-cell>
+          </clr-dg-row>
+  
+  
+        <clr-dg-footer>{{customDataFiltered.length}} / {{customTable.customData.length}}
+          <clr-dg-pagination #pagination [clrDgPageSize]="15">
+            <clr-dg-page-size [clrPageSizeOptions]="[15,25,50]">Entries per Page</clr-dg-page-size>
+            {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}}
+            of {{pagination.totalItems}} Entries
+          </clr-dg-pagination>
+        </clr-dg-footer>
+      </clr-datagrid>
+      <button class="btn btn-primary btn-sm" (click)="saveTableData()">Save Table</button>
+    </div>
+  </div>
+  
+  <div class="modal" *ngIf="showEditData">
+    <div class="modal-dialog" role="dialog" aria-hidden="true">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button aria-label="Close" class="close" type="button">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+          </button>
+          <h3 class="modal-title">Edit Data</h3>
+        </div>
+        <div class="modal-body">
+          <form clrForm [formGroup]="editFormGroup">
+            <div *ngFor="let input of dataToEdit.customDataMap">
+              <clr-input-container *ngIf="input.customColDefinition.datatype.toLowerCase() !== 'calculated'">
+                <label class="clr-col-12 clr-col-md-2">{{input.customColDefinition.name}} Input</label>
+                <input formControlName="{{input.customColDefinition.id}}" placeholder="{{input.customColDefinition.name}}" class="clr-col-12 clr-col-md-2" clrInput type="{{getInputType(input.customColDefinition.datatype)}}" name="example" [value]="input.customCol.data"/>
+              </clr-input-container>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" type="button" (click)="closeEditData()">Cancel</button>
+          <button class="btn btn-primary" type="button" (click)="saveEditData()">Save Data</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop" aria-hidden="true"></div>
+  </div>
+  
+  <app-calculator [(calculatorOpener)]="calculatorGeneratorOpener" [(customTable)]="customTable"></app-calculator>
+</ng-container>
+
+

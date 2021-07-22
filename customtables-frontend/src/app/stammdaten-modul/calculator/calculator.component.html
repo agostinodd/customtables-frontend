@@ -1,0 +1,111 @@
+<clr-wizard #calcwizard [(clrWizardOpen)]="calculatorOpener" clrWizardSize="lg" (clrWizardOnCancel)="calculatorOpenerChange.emit(false)" (clrWizardOnFinish)="submitMathCol()" [clrWizardClosable]="false">
+  <clr-wizard-title>Calculator-Wizard</clr-wizard-title>
+
+  <clr-wizard-button [type]="'cancel'">Cancel</clr-wizard-button>
+  <clr-wizard-button [type]="'previous'">Back</clr-wizard-button>
+  <clr-wizard-button [type]="'next'">Continue</clr-wizard-button>
+  <clr-wizard-button [type]="'finish'">Done</clr-wizard-button>
+
+  <clr-wizard-page>
+    <ng-template clrPageTitle>Introduction</ng-template>
+    <h2>Welcome to the Calculation Wizard!</h2>
+    <p>With the help of the calculation wizard, you can generate your own columns that calculate your data for you! To do this, use the input field to determine what you want to be calculated. Confirm your input accordingly and you will see an additional field within your table that contains the calculations of your data. In addition, you can save this column using the <strong>Save table</strong> function so that you can easily access your calculation functions.</p>
+  </clr-wizard-page>
+
+  <clr-wizard-page (clrWizardPageFinish)="submitExpression()" [clrWizardPagePreventDefaultNext]="true" >
+    <ng-template clrPageTitle>Input</ng-template>
+    <h2>Enter your mathematical calculation!</h2>
+    <div class="clr-row" id="calculator">
+      <div class="clr-row" id="expression">
+
+        <div class="clr-col-12" style="margin-bottom: 0.5rem;">
+          <form clrForm [formGroup]="calcColGrup">
+            <clr-input-container>
+              <label>Name of Column</label>
+              <input clrInput type="text" formControlName="calcColName" name="example" />
+            </clr-input-container>
+          </form>
+        </div>
+
+        <!--
+        <input type="text" disabled id="math-input" placeholder="4+5" [value]="expressionString">
+        -->
+        <div *ngFor="let x of expression; index as i" [attr.data-index]="i">
+          <span *ngIf="isCustomColDefinition(x)" class="label clickable calc-cell" (click)="removeThisExp(i)">{{x.name}}</span>
+          <span *ngIf="!isCustomColDefinition(x)" class="label clickable calc-cell" (click)="removeThisExp(i)">{{x.toString()}}</span>
+        </div>
+      </div>
+
+      <div class="clr-row" id="col-keyboard">
+          <span style="margin: 5px" *ngFor="let cols of getAllNumberCols()" class="label clickable col-label"(click)="addCol(cols)">{{cols.name}}</span>
+      </div>
+
+      <div class="clr-row" id="number-keyboard">
+          <div class="clr-col-4">
+            <span class="math-numb label label-blue clickable" (click)="addNum(1)">1</span>
+            <span class="math-numb label label-blue clickable" (click)="addNum(2)">2</span>
+            <span class="math-numb label label-blue clickable" (click)="addNum(3)">3</span>
+          </div>
+          <div class="clr-col-4">
+            <span class="math-numb label label-blue clickable" (click)="addNum(4)">4</span>
+            <span class="math-numb label label-blue clickable" (click)="addNum(5)">5</span>
+            <span class="math-numb label label-blue clickable" (click)="addNum(6)">6</span>
+          </div>
+          <div class="clr-col-4">
+            <span class="math-numb label label-blue clickable" (click)="addNum(7)">7</span>
+            <span class="math-numb label label-blue clickable" (click)="addNum(8)">8</span>
+            <span class="math-numb label label-blue clickable" (click)="addNum(9)">9</span>
+            <span class="math-numb label label-blue clickable" (click)="addNum(0)">0</span>
+            <span class="math-numb label label-blue clickable" (click)="addLit('.')">.</span>
+          </div>
+      </div>
+
+      <div class="clr-row" id="functions-keyboard">
+        <!--
+        TODO IMPLEMENT RADIENT
+        <div class="clr-col-4">
+          <form [formGroup]="radOrDegGroup">
+            <div class="clr-toggle-wrapper">
+              <input type="checkbox" id="toggle1" name="toggle-basic" value="option1" formControlName="radOrDegSwitch" (change)="changeCalcMode()" class="clr-toggle">
+              <label for="toggle1">{{currentCalcMode}}</label>
+            </div>
+          </form>
+        </div>
+        -->
+        <div class="clr-col-4">
+          <span class="math-func label label-purple clickable" (click)="addLit('(')">(</span>
+          <span class="math-func label label-purple clickable" (click)="addLit(')')">)</span>
+        </div>
+        <div class="clr-col-4">
+          <span class="math-func label label-blue clickable" (click)="addLit('+')">+</span>
+          <span class="math-func label label-blue clickable" (click)="addLit('-')">-</span>
+          <span class="math-func label label-blue clickable" (click)="addLit('*')">*</span>
+          <span class="math-func label label-blue clickable" (click)="addLit('/')">/</span>
+        </div>
+        <div class="clr-col-4">
+          <span class="math-func label label-blue clickable" (click)="addLit('%')">%</span>
+          <span class="math-func label label-blue clickable" (click)="addLit('^')">^</span>
+          <span class="math-func label label-blue clickable" (click)="addLit('!')">!</span>
+        </div>
+      </div>
+
+      <!--
+
+      TODO IMPLEMENT
+      <div class="clr-row" id="functions-keyboard-extended">
+        <div class="clr-col-12">
+          <span class="math-func-extended label label-orange clickable" (click)="addLit('sin')">sin</span>
+          <span class="math-func-extended label label-orange clickable" (click)="addLit('asin')">sin<sup>-1</sup></span>
+          <span class="math-func-extended label label-orange clickable" (click)="addLit('cos')" >cos</span>
+          <span class="math-func-extended label label-orange clickable" (click)="addLit('acos')" >cos<sup>-1</sup></span>
+          <span class="math-func-extended label label-orange clickable" (click)="addLit('tan')" >tan</span>
+          <span class="math-func-extended label label-orange clickable" (click)="addLit('atan')">tan<sup>-1</sup></span>
+          <span class="math-func-extended label label-orange clickable" (click)="addLit('e')">e</span>
+          <span class="math-func-extended label label-orange clickable" (click)="addLit('pi')">π</span>
+        </div>
+      </div>
+
+      -->
+    </div>
+  </clr-wizard-page>
+</clr-wizard>

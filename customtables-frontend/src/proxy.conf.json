@@ -1,0 +1,10 @@
+{
+  "/tables-management/": {
+    "target": "http://localhost:8080",
+    "secure": false,
+    "pathRewrite": {
+      "^tables-management": ""
+    },
+    "logLevel": "debug"
+  }
+}
